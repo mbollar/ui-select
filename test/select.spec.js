@@ -151,15 +151,23 @@ describe('ui-select tests', function() {
     e.keyCode = keyCode;
     element.trigger(e);
   }
-  function triggerPaste(element, text) {
+  function triggerPaste(element, text, isClipboardEvent) {
     var e = jQuery.Event("paste");
-    e.originalEvent = {
-        clipboardData : {
-            getData : function() {
-                return text;
-            }
+    if (isClipboardEvent) {
+      e.clipboardData = {
+        getData : function() {
+            return text;
         }
-    };
+      };
+    } else {
+      e.originalEvent = {
+        clipboardData : {
+          getData : function() {
+              return text;
+          }
+        }
+      };
+    }
     element.trigger(e);
   }
 
@@ -211,7 +219,7 @@ describe('ui-select tests', function() {
 
     expect(getMatchLabel(el)).toEqual('Adam');
   });
-  
+
   it('should correctly render initial state with track by feature', function() {
     var el = compileTemplate(
       '<ui-select ng-model="selection.selected"> \
@@ -319,13 +327,13 @@ describe('ui-select tests', function() {
   it('should toggle allow-clear directive', function() {
     scope.selection.selected = scope.people[0];
     scope.isClearAllowed = false;
-    
+
     var el = createUiSelect({theme : 'select2', allowClear: '{{isClearAllowed}}'});
     var $select = el.scope().$select;
 
     expect($select.allowClear).toEqual(false);
     expect(el.find('.select2-search-choice-close').length).toEqual(0);
-    
+
     // Turn clear on
     scope.isClearAllowed = true;
     scope.$digest();
@@ -1741,6 +1749,25 @@ describe('ui-select tests', function() {
        triggerPaste(el.find('input'), 'tag1');
 
        expect($(el).scope().$select.selected.length).toBe(1);
+       expect($(el).scope().$select.selected[0].name).toBe('tag1');
+    });
+
+    it('should allow paste tag from clipboard for generic ClipboardEvent', function() {
+       scope.taggingFunc = function (name) {
+         return {
+           name: name,
+           email: name + '@email.com',
+           group: 'Foo',
+           age: 12
+         };
+       };
+
+       var el = createUiSelectMultiple({tagging: 'taggingFunc', taggingTokens: ",|ENTER"});
+       clickMatch(el);
+       triggerPaste(el.find('input'), 'tag1', true);
+
+       expect($(el).scope().$select.selected.length).toBe(1);
+       expect($(el).scope().$select.selected[0].name).toBe('tag1');
     });
 
     it('should allow paste multiple tags', function() {
@@ -1756,6 +1783,23 @@ describe('ui-select tests', function() {
       var el = createUiSelectMultiple({tagging: 'taggingFunc', taggingTokens: ",|ENTER"});
       clickMatch(el);
       triggerPaste(el.find('input'), ',tag1,tag2,tag3,,tag5,');
+
+      expect($(el).scope().$select.selected.length).toBe(5);
+    });
+
+    it('should allow paste multiple tags with generic ClipboardEvent', function() {
+      scope.taggingFunc = function (name) {
+        return {
+          name: name,
+          email: name + '@email.com',
+          group: 'Foo',
+          age: 12
+        };
+      };
+
+      var el = createUiSelectMultiple({tagging: 'taggingFunc', taggingTokens: ",|ENTER"});
+      clickMatch(el);
+      triggerPaste(el.find('input'), ',tag1,tag2,tag3,,tag5,', true);
 
       expect($(el).scope().$select.selected.length).toBe(5);
     });

@@ -441,12 +441,12 @@ uis.controller('uiSelectCtrl',
 
   // If tagging try to split by tokens and add items
   ctrl.searchInput.on('paste', function (e) {
-    var data = e.originalEvent.clipboardData.getData('text/plain');
-    if (data && data.length > 0 && ctrl.taggingTokens.isActivated && ctrl.tagging.fct) {
+    var data = (e.originalEvent || e).clipboardData.getData('text/plain');
+    if (data && data.length > 0 && ctrl.taggingTokens.isActivated) {
       var items = data.split(ctrl.taggingTokens.tokens[0]); // split by first token only
       if (items && items.length > 0) {
         angular.forEach(items, function (item) {
-          var newItem = ctrl.tagging.fct(item);
+          var newItem = ctrl.tagging.fct ? ctrl.tagging.fct(item) : item;
           if (newItem) {
             ctrl.select(newItem, true);
           }
