@@ -9,7 +9,7 @@ var rename = require('gulp-rename');
 var es = require('event-stream');
 var del = require('del');
 var uglify = require('gulp-uglify');
-var minifyHtml = require('gulp-minify-html');
+var minifyHtml = require('gulp-minify-html'); 
 var minifyCSS = require('gulp-minify-css');
 var templateCache = require('gulp-angular-templatecache');
 var gutil = require('gulp-util');
@@ -30,7 +30,7 @@ gulp.task('default', ['build','test']);
 gulp.task('build', ['scripts', 'styles']);
 gulp.task('test', ['build', 'karma']);
 
-gulp.task('watch', ['build','karma-watch'], function() {
+gulp.task('watch', ['build'], function() {
   gulp.watch(['src/**/*.{js,html}'], ['build']);
 });
 
@@ -60,7 +60,6 @@ gulp.task('scripts', ['clean'], function() {
       .pipe(footer('\n}());'))
       .pipe(jshint())
       .pipe(jshint.reporter('jshint-stylish'))
-      .pipe(jshint.reporter('fail'));
   };
 
   return es.merge(buildLib(), buildTemplates())

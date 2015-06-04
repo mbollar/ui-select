@@ -5,8 +5,8 @@
  * put as much logic in the controller (instead of the link functions) as possible so it can be easily tested.
  */
 uis.controller('uiSelectCtrl',
-  ['$scope', '$element', '$timeout', '$filter', 'uisRepeatParser', 'uiSelectMinErr', 'uiSelectConfig',
-  function($scope, $element, $timeout, $filter, RepeatParser, uiSelectMinErr, uiSelectConfig) {
+  ['$scope', '$element', '$timeout', '$filter', '$log', 'uisRepeatParser', 'uiSelectMinErr', 'uiSelectConfig',
+  function($scope, $element, $timeout, $filter, $log, RepeatParser, uiSelectMinErr, uiSelectConfig) {
 
   var ctrl = this;
 
@@ -38,6 +38,7 @@ uis.controller('uiSelectCtrl',
   ctrl.lockChoiceExpression = undefined; // Initialized inside uiSelectMatch directive link function
   ctrl.clickTriggeredSelect = false;
   ctrl.$filter = $filter;
+  ctrl.$element = $element;
 
   ctrl.searchInput = $element.querySelectorAll('input.ui-select-search');
   if (ctrl.searchInput.length !== 1) {
@@ -50,6 +51,7 @@ uis.controller('uiSelectCtrl',
 
   // Most of the time the user does not want to empty the search input when in typeahead mode
   function _resetSearchInput() {
+    console.log('reset search input');
     if (ctrl.resetSearchInput || (ctrl.resetSearchInput === undefined && uiSelectConfig.resetSearchInput)) {
       ctrl.search = EMPTY_SEARCH;
       //reset activeIndex
@@ -72,9 +74,8 @@ uis.controller('uiSelectCtrl',
     }
 
   // When the user clicks on ui-select, displays the dropdown list
-  ctrl.activate = function(initSearchValue, avoidReset) {
+  ctrl.activate = function(initSearchValue, editing) {
     if (!ctrl.disabled  && !ctrl.open) {
-      if(!avoidReset) _resetSearchInput();
 
       $scope.$broadcast('uis:activate');
 
@@ -100,6 +101,10 @@ uis.controller('uiSelectCtrl',
     return ctrl.groups && ctrl.groups.filter(function(group) {
       return group.name === name;
     })[0];
+  };
+
+  ctrl.isGrabbable = function() {
+    return ctrl.sortable;
   };
 
   ctrl.parseRepeatAttr = function(repeatAttr, groupByExp, groupFilterExp) {
@@ -154,7 +159,10 @@ uis.controller('uiSelectCtrl',
         }
       }
     };
-
+    ctrl.editTag = function(item, thing) {
+      console.log(item);
+      console.log(thing);
+    }
     // See https://github.com/angular/angular.js/blob/v1.2.15/src/ng/directive/ngRepeat.js#L259
     $scope.$watchCollection(ctrl.parserResult.source, function(items) {
       if (items === undefined || items === null) {
@@ -279,7 +287,7 @@ uis.controller('uiSelectCtrl',
           }
           // search ctrl.selected for dupes potentially caused by tagging and return early if found
           if ( ctrl.selected && angular.isArray(ctrl.selected) && ctrl.selected.filter( function (selection) { return angular.equals(selection, item); }).length > 0 ) {
-            ctrl.close(skipFocusser);
+            ctrl.close(skipFocusser, true);
             return;
           }
         }
@@ -297,7 +305,7 @@ uis.controller('uiSelectCtrl',
         });
 
         if (ctrl.closeOnSelect) {
-          ctrl.close(skipFocusser);
+          ctrl.close(skipFocusser, true);
         }
         if ($event && $event.type === 'click') {
           ctrl.clickTriggeredSelect = true;
@@ -307,14 +315,12 @@ uis.controller('uiSelectCtrl',
   };
 
   // Closes the dropdown
-  ctrl.close = function(skipFocusser) {
+  ctrl.close = function(skipFocusser, resetInput) {
     if (!ctrl.open) return;
-    if (ctrl.ngModel && ctrl.ngModel.$setTouched) ctrl.ngModel.$setTouched();
-    _resetSearchInput();
+    if (ctrl.ngModel && ctrl.ngModel.$setTouched) ctrl.ngModel.$setTouched(); 
+    if (resetInput) _resetSearchInput();
     ctrl.open = false;
-
     $scope.$broadcast('uis:close', skipFocusser);
-
   };
 
   ctrl.setFocus = function(){
@@ -387,11 +393,11 @@ uis.controller('uiSelectCtrl',
     var processed = true;
     switch (key) {
       case KEY.DOWN:
-        if (!ctrl.open && ctrl.multiple) ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+        if (!ctrl.open && ctrl.multiple) ctrl.activate(false); //In case its the search input in 'multiple' mode
         else if (ctrl.activeIndex < ctrl.items.length - 1) { ctrl.activeIndex++; }
         break;
       case KEY.UP:
-        if (!ctrl.open && ctrl.multiple) ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+        if (!ctrl.open && ctrl.multiple) ctrl.activate(false); //In case its the search input in 'multiple' mode
         else if (ctrl.activeIndex > 0 || (ctrl.search.length === 0 && ctrl.tagging.isActivated && ctrl.activeIndex > -1)) { ctrl.activeIndex--; }
         break;
       case KEY.TAB:
@@ -401,7 +407,7 @@ uis.controller('uiSelectCtrl',
         if(ctrl.open && (ctrl.tagging.isActivated || ctrl.activeIndex >= 0)){
           ctrl.select(ctrl.items[ctrl.activeIndex]); // Make sure at least one dropdown item is highlighted before adding if not in tagging mode
         } else {
-          ctrl.activate(false, true); //In case its the search input in 'multiple' mode
+          ctrl.activate(false); //In case its the search input in 'multiple' mode
         }
         break;
       case KEY.ESC:
