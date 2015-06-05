@@ -51,7 +51,6 @@ uis.controller('uiSelectCtrl',
 
   // Most of the time the user does not want to empty the search input when in typeahead mode
   function _resetSearchInput() {
-    console.log('reset search input');
     if (ctrl.resetSearchInput || (ctrl.resetSearchInput === undefined && uiSelectConfig.resetSearchInput)) {
       ctrl.search = EMPTY_SEARCH;
       //reset activeIndex
@@ -74,7 +73,7 @@ uis.controller('uiSelectCtrl',
     }
 
   // When the user clicks on ui-select, displays the dropdown list
-  ctrl.activate = function(initSearchValue, editing) {
+  ctrl.activate = function(initSearchValue) {
     if (!ctrl.disabled  && !ctrl.open) {
 
       $scope.$broadcast('uis:activate');
@@ -159,10 +158,6 @@ uis.controller('uiSelectCtrl',
         }
       }
     };
-    ctrl.editTag = function(item, thing) {
-      console.log(item);
-      console.log(thing);
-    }
     // See https://github.com/angular/angular.js/blob/v1.2.15/src/ng/directive/ngRepeat.js#L259
     $scope.$watchCollection(ctrl.parserResult.source, function(items) {
       if (items === undefined || items === null) {

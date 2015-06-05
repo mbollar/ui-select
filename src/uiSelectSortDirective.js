@@ -29,9 +29,15 @@ uis.directive('uiSelectSort', ['$timeout', 'uiSelectConfig', 'uiSelectMinErr', f
       });
 
       element.on('dragstart', function(e) {
+        var dataTransfer;
         element.addClass(draggingClassName);
-
-        (e.dataTransfer || e.originalEvent.dataTransfer).setData('text/plain', scope.$index);
+        if (e.dataTransfer) {
+          dataTransfer = e.dataTransfer;
+        } else {
+          dataTransfer = e.originalEvent.dataTransfer;
+        }
+        var stringIndex = ''+scope.$index;
+        dataTransfer.setData('Text', stringIndex);
       });
 
       element.on('dragend', function() {
@@ -73,7 +79,15 @@ uis.directive('uiSelectSort', ['$timeout', 'uiSelectConfig', 'uiSelectMinErr', f
       var dropHandler = function(e) {
         e.preventDefault();
 
-        var droppedItemIndex = parseInt((e.dataTransfer || e.originalEvent.dataTransfer).getData('text/plain'), 10);
+        var data;
+
+        if (e.dataTransfer) {
+          data = e.dataTransfer;
+        } else {
+          data = e.originalEvent.dataTransfer;
+        }
+
+        var droppedItemIndex = data.getData('Text');
 
         // prevent event firing multiple times in firefox
         $timeout.cancel(dropTimeout);

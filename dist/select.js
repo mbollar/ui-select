@@ -1,7 +1,7 @@
 /*!
  * ui-select
  * http://github.com/angular-ui/ui-select
- * Version: 0.12.0 - 2015-06-04T17:31:50.811Z
+ * Version: 0.12.0 - 2015-06-05T17:52:29.866Z
  * License: MIT
  */
 
@@ -288,7 +288,6 @@ uis.controller('uiSelectCtrl',
 
   // Most of the time the user does not want to empty the search input when in typeahead mode
   function _resetSearchInput() {
-    console.log('reset search input');
     if (ctrl.resetSearchInput || (ctrl.resetSearchInput === undefined && uiSelectConfig.resetSearchInput)) {
       ctrl.search = EMPTY_SEARCH;
       //reset activeIndex
@@ -311,7 +310,7 @@ uis.controller('uiSelectCtrl',
     }
 
   // When the user clicks on ui-select, displays the dropdown list
-  ctrl.activate = function(initSearchValue, editing) {
+  ctrl.activate = function(initSearchValue) {
     if (!ctrl.disabled  && !ctrl.open) {
 
       $scope.$broadcast('uis:activate');
@@ -396,10 +395,6 @@ uis.controller('uiSelectCtrl',
         }
       }
     };
-    ctrl.editTag = function(item, thing) {
-      console.log(item);
-      console.log(thing);
-    }
     // See https://github.com/angular/angular.js/blob/v1.2.15/src/ng/directive/ngRepeat.js#L259
     $scope.$watchCollection(ctrl.parserResult.source, function(items) {
       if (items === undefined || items === null) {
@@ -1120,7 +1115,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', '$log', function
         //the dropdown should remove that item
         $select.refreshItems();
         $select.sizeSearchInput();
-      }
+      };
       ctrl.editTag = function(item, index) {
         var editSearch = $select.selected[index];
         $select.searchInput[0].focus();
@@ -1134,7 +1129,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', '$log', function
           $select.activeIndex = 0;
           $select.searchInput[0].focus();
         });
-      }
+      };
       // Remove item from multiple select
       ctrl.removeChoice = function(index){
 
@@ -1676,9 +1671,15 @@ uis.directive('uiSelectSort', ['$timeout', 'uiSelectConfig', 'uiSelectMinErr', f
       });
 
       element.on('dragstart', function(e) {
+        var dataTransfer;
         element.addClass(draggingClassName);
-
-        (e.dataTransfer || e.originalEvent.dataTransfer).setData('text/plain', scope.$index);
+        if (e.dataTransfer) {
+          dataTransfer = e.dataTransfer;
+        } else {
+          dataTransfer = e.originalEvent.dataTransfer;
+        }
+        var stringIndex = ''+scope.$index;
+        dataTransfer.setData('Text', stringIndex);
       });
 
       element.on('dragend', function() {
@@ -1720,7 +1721,15 @@ uis.directive('uiSelectSort', ['$timeout', 'uiSelectConfig', 'uiSelectMinErr', f
       var dropHandler = function(e) {
         e.preventDefault();
 
-        var droppedItemIndex = parseInt((e.dataTransfer || e.originalEvent.dataTransfer).getData('text/plain'), 10);
+        var data;
+
+        if (e.dataTransfer) {
+          data = e.dataTransfer;
+        } else {
+          data = e.originalEvent.dataTransfer;
+        }
+
+        var droppedItemIndex = data.getData('Text');
 
         // prevent event firing multiple times in firefox
         $timeout.cancel(dropTimeout);

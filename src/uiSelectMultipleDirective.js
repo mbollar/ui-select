@@ -25,7 +25,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', '$log', function
         //the dropdown should remove that item
         $select.refreshItems();
         $select.sizeSearchInput();
-      }
+      };
       ctrl.editTag = function(item, index) {
         var editSearch = $select.selected[index];
         $select.searchInput[0].focus();
@@ -39,7 +39,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', '$log', function
           $select.activeIndex = 0;
           $select.searchInput[0].focus();
         });
-      }
+      };
       // Remove item from multiple select
       ctrl.removeChoice = function(index){
 
