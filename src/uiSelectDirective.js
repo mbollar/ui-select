@@ -268,9 +268,19 @@ uis.directive('uiSelect',
             $timeout(function(){
               var offset = uisOffset(element);
               var offsetDropdown = uisOffset(dropdown);
+              var scrollTop = 0;
+              
+              //Chrome, Safari
+              if ($document[0].body.scrollTop) {
+                  scrollTop = $document[0].body.scrollTop;
+              }
+              //Firefox
+              if ($document[0].documentElement && $document[0].documentElement.scrollTop) {
+                  scrollTop = $document[0].documentElement.scrollTop;
+              }
 
               // Determine if the direction of the dropdown needs to be changed.
-              if (offset.top + offset.height + offsetDropdown.height > $document.find('body')[0].scrollTop + $document[0].documentElement.clientHeight) {
+              if (offset.top + offset.height + offsetDropdown.height > scrollTop + $document[0].documentElement.clientHeight) {
                 dropdown[0].style.position = 'absolute';
                 dropdown[0].style.top = (offsetDropdown.height * -1) + 'px';
                 element.addClass(directionUpClassName);
